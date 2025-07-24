@@ -65,6 +65,165 @@ fun MainScreen(modifier: Modifier = Modifier) {
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
 
+    val digits =input
+        .replace(",", ".")                  // заменяем запятые на точки
+        .trim()                             // убираем пробелы в начале/конце
+        .split(Regex("\\s+"))               // разделяем по пробелам
+        .mapNotNull { it.toDoubleOrNull() } // пытаемся преобразовать в числа
+
+    val average = if (digits.isNotEmpty()) {
+        digits.average()
+    } else {
+        0.0
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .padding(28.dp),
+        verticalArrangement = Arrangement.Top
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "Среднее \nзначение",
+            style = TextStyle(
+                fontSize = 40.sp,
+                lineHeight = 40.sp,
+                fontFamily = MyFontFamily,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+            )
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            text = "Считайте ср. значение чисел, ставьте пробел после каждого числа для коррекного счета, например:\n(12  3.5 = 7.75)",
+            style = TextStyle(
+                fontSize = 20.sp,
+                lineHeight = 20.sp,
+                fontFamily = MyFontFamily,
+                fontWeight = FontWeight.Medium,
+                color = Color.Gray,
+            )
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+        ) {
+            TextField(
+                value = input,
+                onValueChange = { newValue ->
+                    // Фильтруем ввод, оставляя только цифры
+                    input = newValue.filter {
+                        it.isDigit() || it == ' ' || it == ',' || it == '.' || it == ';'
+                    }
+                },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Done),
+                placeholder = {
+                    Text(
+                        text = "Введите числа",
+                        fontFamily = MyFontFamily, // Применяем ваш шрифт
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 18.sp,
+                        color = Color.Gray
+                    )
+                },
+                // Главное место для настройки цветов и фона TextField
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFFEAEAEA), // Фон поля при фокусе
+                    unfocusedContainerColor = Color(0xFFEAEAEA), // Фон поля без фокуса
+                    disabledContainerColor = Color(0xFFEAEAEA), // Фон поля в отключенном состоянии
+
+                    focusedTextColor = Color.Black, // Цвет текста при фокусе
+                    unfocusedTextColor = Color.Black, // Цвет текста без фокуса
+                    disabledTextColor = Color.Black, // Цвет текста в отключенном состоянии
+
+                    cursorColor = Color.Black, // Цвет курсора
+
+                    focusedIndicatorColor = Color.Transparent, // Убираем нижнюю линию при фокусе
+                    unfocusedIndicatorColor = Color.Transparent, // Убираем нижнюю линию без фокуса
+                    disabledIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = Color.Transparent,
+
+                ),
+                // Применение скругления напрямую к TextField
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier
+                    .height(56.dp)
+                    .fillMaxWidth(),
+                textStyle = TextStyle(
+                    fontFamily = MyFontFamily, // Применяем ваш шрифт к введенному тексту
+                    fontSize = 18.sp,
+                    color = Color.Black // Убедитесь, что цвет текста установлен здесь или через colors
+                ),
+            )
+            // Кнопки справа
+            Row(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd),
+
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Вставить из буфера
+                IconButton(
+                    onClick = {
+                        val clipboardText = clipboardManager.getText()?.text ?: ""
+                        input = clipboardText.filter {
+                            it.isDigit() || it == ' ' || it == ',' || it == '.' || it == ';'
+                        }
+
+                        Toast
+                            .makeText(context, "Цифры из буфера обмена вставлены", Toast.LENGTH_SHORT)
+                            .show()
+                    },
+                    modifier = Modifier
+                        .size(56.dp) // совпадает с высотой TextField
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.Black)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.paste),
+                        contentDescription = "Вставить",
+                        tint = Color.White
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(36.dp))
+
+        Text(
+            text = "Среднее значение: ${"%.2f".format(average)}",
+            style = TextStyle(
+                fontSize = 29.sp,
+                lineHeight = 29.sp,
+                fontFamily = MyFontFamily,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black,
+            )
+        )
+    }
+}
+@Composable
+fun MainScreen(modifier: Modifier = Modifier) {
+    val MyFontFamily = FontFamily(
+        Font(R.font.sfmedium, FontWeight.Normal),
+        Font(R.font.sfbold, FontWeight.Bold),
+        Font(R.font.sflight, FontWeight.Light)
+    )
+
+    var input by remember { mutableStateOf("") }
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
+
     val digits = input.filter { it.isDigit() }
         .map { it.digitToInt() }
 
